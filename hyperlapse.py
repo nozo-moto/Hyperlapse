@@ -8,20 +8,26 @@ Computational Photography, Fall 2014
 """
 
 # imports:
+import sys
+sys.path.append('/usr/local/lib/python2.7/site-packages')
 
 import numpy
+import matplotlib
+matplotlib.rcParams['backend'] = 'TkAgg' 
+
 import matplotlib.pyplot as plt
 import skimage.io
 import cv2
-import cv2.cv as cv
+#import cv2.cv as cv
 from savitzky_golay_filter import savgol
 import sys
 import copy
+import numpy as np
 
 # globals:
 
-INPUT_VIDEO_PATH = "path/to/input/file"
-OUTPUT_VIDEO_PATH = "path/to/output/file"
+INPUT_VIDEO_PATH = "/Users/nozo-moto/Desktop/DJI_0357.MP4"
+OUTPUT_VIDEO_PATH = "./"
 SPEED_UP = 15
 CORNER_HARRIS_K = 0.04 
 CORNER_HARRIS_K_SIZE = 3
@@ -34,7 +40,7 @@ GF_MAX_CORNERS = 100
 GF_QUALITY_LEVEL = 0.3
 GF_MIN_DISTANCE = 7
 GF_BLOCK_SIZE = 7
-FOURCC = cv.CV_FOURCC(*'XVID')
+FOURCC = cv2.VideoWriter_fourcc(*'XVID')
 SG_WINDOW = 359
 SG_P_ORDER = 3
 CROP_THRESH = 0.215
@@ -45,14 +51,15 @@ def find_motion_vector(img1, img2):
 	"""given 2 contiguous images in an image stream, returns the motion vector \
 	 between them"""
 
-	if img1 == None or img2 == None or img1.shape[2] < 3 or img2.shape[2] < 3:
+	if np.all(img1 == None) or np.all(img2 == None) or np.all(img1.shape[2] < 3) or np.all(img2.shape[2] < 3):
+	#if np.any(img1 == None,  img2 == None, img1.shape[2] < 3, img2.shape[2] < 3):
 		return numpy.array([0.0, 0.0])
 
 	gray1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
 	features1 = cv2.goodFeaturesToTrack(gray1, GF_MAX_CORNERS, \
 		GF_QUALITY_LEVEL, GF_MIN_DISTANCE, GF_BLOCK_SIZE)
 
-	if features1 == None or len(features1) == 0:
+	if np.all(features1 == None) or np.all(len(features1) == 0):
 		return numpy.array([0.0, 0.0])
 
 	gray2 = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
@@ -96,10 +103,17 @@ def better_stabilization(input_file, output_file):
 
 	video = cv2.VideoCapture(input_file)
 
-	width = int(video.get(cv.CV_CAP_PROP_FRAME_WIDTH))
-	height = int(video.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
-	fps = video.get(cv.CV_CAP_PROP_FPS)
-	total_frames = int(video.get(cv.CV_CAP_PROP_FRAME_COUNT))
+	#width = int(video.get(cv.CV_CAP_PROP_FRAME_WIDTH))
+	#height = int(video.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
+	width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+	height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+	#fps = video.get(cv.CV_CAP_PROP_FPS)
+	#total_frames = int(video.get(cv.CV_CAP_PROP_FRAME_COUNT))
+        fps = video.get(cv2.CAP_PROP_FPS)
+	total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+
+
 
 	x = 0
 	y = 0
